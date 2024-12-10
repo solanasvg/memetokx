@@ -1,0 +1,809 @@
+<html><head><base href="https://tenor.googleapis.com/v2/">
+<title>MemeTok - Insane Meme Experience</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
+
+:root {
+  --primary-color: #FF4D8D;
+  --secondary-color: #FF8D4D;
+  --bg-color: #120E29;
+  --text-color: #fff;
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Poppins', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  overflow: hidden;
+}
+
+#app {
+  height: 100%;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+
+.meme-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  scroll-snap-align: start;
+  position: relative;
+  overflow: hidden;
+  z-index: 2; /* Add this */
+}
+
+.meme {
+  max-width: 90%;
+  max-height: 70%;
+  object-fit: contain;
+  border-radius: 20px;
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+  transition: transform 0.3s ease;
+  opacity: 1; /* Add this line */
+}
+
+.meme:hover {
+  transform: scale(1.05);
+}
+
+.meme-info {
+  position: absolute;
+  bottom: 30px;
+  left: 30px;
+  max-width: 60%;
+  background-color: rgba(18, 14, 41, 0.8);
+  padding: 15px;
+  border-radius: 15px;
+  font-size: 16px;
+  text-align: left;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+  transition: transform 0.3s ease;
+  z-index: 3; /* Add this */
+}
+
+.meme-info:hover {
+  transform: scale(1.05);
+}
+
+.actions {
+  position: absolute;
+  right: 30px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 3; /* Add this */
+}
+
+.action-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 30px;
+  margin: 15px 0;
+  cursor: pointer;
+  transition: transform 0.2s, color 0.3s;
+  position: relative;
+}
+
+.action-btn:hover {
+  transform: scale(1.2);
+}
+
+.action-btn.liked {
+  color: var(--primary-color);
+}
+
+.action-count {
+  font-size: 14px;
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(18, 14, 41, 0.8);
+  padding: 3px 8px;
+  border-radius: 10px;
+}
+
+.loading {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+}
+
+.progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 5px;
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+  transition: width 0.3s;
+}
+
+.brand {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  font-size: 32px;
+  font-weight: bold;
+  color: var(--primary-color);
+  z-index: 1001; /* Increase this */
+  text-shadow: 0 0 10px rgba(255, 77, 141, 0.7);
+  letter-spacing: 2px;
+}
+
+@keyframes likeAnimation {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3) rotate(20deg); }
+  100% { transform: scale(1); }
+}
+
+.like-animation {
+  animation: likeAnimation 0.5s ease-in-out;
+}
+
+.bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1));
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+  animation: float 20s infinite ease-in-out;
+  z-index: 1; /* Change this from -1 to 1 */
+  pointer-events: none; /* Add this to allow interaction with elements below */
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+.cursor {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--primary-color);
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  transition: all 0.1s ease;
+  transform: translate(-50%, -50%);
+}
+
+.cursor::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  position: absolute;
+  border: 2px solid var(--secondary-color);
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.tutorial-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 1001; /* Increase this */
+  transition: background-color 0.3s ease;
+}
+
+.tutorial-btn:hover {
+  background-color: var(--secondary-color);
+}
+
+.settings-btn {
+  position: fixed;
+  top: 20px;
+  right: 70px;
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 20px;
+  cursor: pointer;
+  z-index: 1001;
+  transition: background-color 0.3s ease;
+}
+
+.settings-btn:hover {
+  background-color: var(--secondary-color);
+}
+
+.settings-modal {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(18, 14, 41, 0.9);
+  padding: 30px;
+  border-radius: 20px;
+  z-index: 1001;
+  max-width: 80%;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+}
+
+.settings-modal h2 {
+  color: var(--primary-color);
+  margin-bottom: 20px;
+}
+
+.setting {
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.settings-modal button {
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 20px;
+}
+
+.settings-modal button:hover {
+  background-color: var(--secondary-color);
+}
+
+.version-log {
+  margin-top: 20px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.version-log h3 {
+  color: var(--secondary-color);
+  margin-bottom: 10px;
+}
+
+.version-log ul {
+  padding-left: 20px;
+}
+
+.version-log li {
+  margin-bottom: 5px;
+}
+
+.timer {
+  position: fixed;
+  top: 70px;
+  left: 20px;
+  background-color: rgba(18, 14, 41, 0.8);
+  color: var(--text-color);
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 14px;
+  z-index: 1001; /* Increase this */
+}
+
+.credentials {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background-color: rgba(18, 14, 41, 0.8);
+  color: var(--text-color);
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 12px;
+  text-align: right;
+  z-index: 1001;
+}
+
+.credentials p {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.floating-meme {
+  position: fixed;
+  pointer-events: none;
+  opacity: 0.1;
+  z-index: 0;
+  animation: float 20s infinite ease-in-out;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(20px, -20px) rotate(10deg); }
+}
+
+.search-bar {
+  position: fixed;
+  top: 70px;
+  right: 20px;
+  display: flex;
+  flex-direction: column; /* Change to column layout */
+  gap: 5px;
+  z-index: 1001;
+  background-color: rgba(18, 14, 41, 0.8);
+  padding: 8px;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+}
+
+.search-bar input {
+  width: 140px; /* Set consistent width for inputs */
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--primary-color);
+  border-radius: 8px;
+  color: white;
+  padding: 5px 10px;
+  font-size: 14px;
+}
+
+.search-bar button {
+  width: 100%; /* Make button full width */
+  margin-top: 5px; /* Add some spacing above button */
+  background: var(--primary-color);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.settings-modal#tutorialModal {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(18, 14, 41, 0.9);
+  padding: 30px;
+  border-radius: 20px;
+  z-index: 1001;
+  max-width: 80%;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+}
+
+.settings-modal#tutorialModal button {
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 20px;
+}
+
+.settings-modal#tutorialModal button:hover {
+  background-color: var(--secondary-color);
+}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+</head>
+<body>
+<div class="brand">MemeTok</div>
+<button class="tutorial-btn" onclick="showTutorial()">?</button>
+<button class="settings-btn" onclick="showSettings()"><i class="fas fa-cog"></i></button>
+<div class="timer" id="timer">Next meme in: 5s</div>
+<div class="search-bar">
+  <input type="text" id="keyword1" placeholder="Keyword 1" maxlength="20">
+  <input type="text" id="keyword2" placeholder="Keyword 2" maxlength="20">
+  <input type="text" id="keyword3" placeholder="Keyword 3" maxlength="20">
+  <button onclick="updateSearchTerms()"><i class="fas fa-search"></i></button>
+</div>
+<div class="settings-modal" id="tutorialModal" style="display: none;">
+  <h2>Welcome to MemeTok!</h2>
+  <p>Scroll or swipe up to see the next meme.</p>
+  <p>Double-tap or click the heart to like a meme.</p>
+  <p>The progress bar at the top shows how much of the meme you've viewed.</p>
+  <p>Enjoy endless entertainment with our curated memes!</p>
+  <button onclick="closeTutorial()">Got it!</button>
+  <div class="version-log">
+    <h3>Version Log</h3>
+    <ul>
+      <li>v1.0.0: Initial release</li>
+      <li>v1.1.0: Added smooth scrolling and auto-load</li>
+      <li>v1.2.0: Enhanced UI with bubbles and custom cursor</li>
+      <li>v1.3.0: Added tutorial and timer</li>
+      <li>v1.4.0: Improved meme quality and added version log</li>
+      <li>v1.5.0: Added settings with Auto Liker and Meme per second options</li>
+    </ul>
+  </div>
+</div>
+<div id="app">
+  <div class="loading">Loading memes...</div>
+</div>
+<div class="cursor"></div>
+
+<div class="settings-modal" id="settingsModal">
+  <h2>Settings</h2>
+  <div class="setting">
+    <label for="autoLiker">Auto Liker:</label>
+    <input type="checkbox" id="autoLiker">
+  </div>
+  <div class="setting">
+    <label for="memePerSecond">Meme per second:</label>
+    <input type="range" id="memePerSecond" min="1" max="10" value="5">
+    <span id="memePerSecondValue">5</span>
+  </div>
+  <div class="setting">
+    <label for="nsfwToggle">NSFW Content:</label>
+    <input type="checkbox" id="nsfwToggle">
+  </div>
+  <button onclick="closeSettings()">Close</button>
+</div>
+
+<div class="credentials">
+  <p>Created by Louis9987 | © 2024</p>
+  <p>Powered by Tenor</p>
+  <p>Version 1.5.0</p>
+</div>
+
+<script>
+const API_KEY = "AIzaSyCeHih6o78JyZKo5mmFfJFx6Dyb5pFkvP0";
+const CLIENT_KEY = "memetok-app";
+let nextPos = "";
+let isLoading = false;
+let preloadedMemes = [];
+let currentMemeIndex = 0;
+let timerInterval;
+let autoLiker = false;
+let memePerSecond = 5;
+let nsfwEnabled = false;
+let customSearchTerms = [];
+
+async function fetchMemes(limit = 10) {
+  let searchTerms;
+  if (customSearchTerms.length > 0) {
+    searchTerms = customSearchTerms;
+  } else {
+    searchTerms = ['funny memes', 'hilarious', 'laugh', 'comedy', 'jokes'];
+    if (nsfwEnabled) {
+      searchTerms.push('nsfw memes', 'adult humor');
+    }
+  }
+  
+  const randomTerm = searchTerms[Math.floor(Math.random() * searchTerms.length)];
+  const url = `https://tenor.googleapis.com/v2/search?q=${encodeURIComponent(randomTerm)}&key=${API_KEY}&client_key=${CLIENT_KEY}&limit=${limit}&pos=${nextPos}&media_filter=minimal${nsfwEnabled ? '&contentfilter=off' : ''}`;
+  
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    nextPos = data.next;
+    return data.results;
+  } catch (error) {
+    console.error('Error fetching memes:', error);
+    return [];
+  }
+}
+
+function createMemeElement(meme) {
+  const container = document.createElement('div');
+  container.className = 'meme-container';
+  
+  const progressBar = document.createElement('div');
+  progressBar.className = 'progress-bar';
+  container.appendChild(progressBar);
+
+  const img = document.createElement('img');
+  img.className = 'meme';
+  img.src = meme.media_formats.gif.url;
+  img.alt = meme.content_description;
+  
+  const info = document.createElement('div');
+  info.className = 'meme-info';
+  info.textContent = meme.content_description;
+  
+  const actions = document.createElement('div');
+  actions.className = 'actions';
+  
+  const likeCount = Math.floor(Math.random() * 100000) + 1000;
+  const likeBtn = createActionButton('fa-heart', likeCount.toLocaleString());
+  
+  actions.appendChild(likeBtn);
+  
+  container.appendChild(img);
+  container.appendChild(info);
+  container.appendChild(actions);
+  
+  // Add bubbles
+  for (let i = 0; i < 5; i++) {
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.style.width = `${Math.random() * 100 + 50}px`;
+    bubble.style.height = bubble.style.width;
+    bubble.style.left = `${Math.random() * 100}%`;
+    bubble.style.top = `${Math.random() * 100}%`;
+    bubble.style.animationDuration = `${Math.random() * 10 + 10}s`;
+    container.appendChild(bubble);
+  }
+  
+  return container;
+}
+
+function createActionButton(iconClass, count) {
+  const btn = document.createElement('button');
+  btn.className = 'action-btn';
+  btn.innerHTML = `<i class="fas ${iconClass}"></i><span class="action-count">${count}</span>`;
+  btn.addEventListener('click', function() {
+    this.classList.toggle('liked');
+    this.classList.add('like-animation');
+    setTimeout(() => this.classList.remove('like-animation'), 500);
+    
+    const countElement = this.querySelector('.action-count');
+    let currentCount = parseInt(countElement.textContent.replace(',', ''));
+    if (this.classList.contains('liked')) {
+      currentCount++;
+    } else {
+      currentCount--;
+    }
+    countElement.textContent = currentCount.toLocaleString();
+  });
+  return btn;
+}
+
+async function loadMemes() {
+  if (isLoading) return;
+  isLoading = true;
+
+  const app = document.getElementById('app');
+  if (app.children.length === 1 && app.firstChild.className === 'loading') {
+    app.innerHTML = '';
+  }
+
+  let memesToAdd;
+  if (preloadedMemes.length > 0) {
+    memesToAdd = preloadedMemes.splice(0, 3);
+  } else {
+    memesToAdd = await fetchMemes(3);
+  }
+
+  memesToAdd.forEach(meme => {
+    const memeElement = createMemeElement(meme);
+    app.appendChild(memeElement);
+  });
+
+  if (preloadedMemes.length < 6) {
+    const newMemes = await fetchMemes(10);
+    preloadedMemes.push(...newMemes);
+  }
+
+  isLoading = false;
+}
+
+function addFloatingMemes() {
+  const app = document.getElementById('app');
+  for (let i = 0; i < 10; i++) {
+    const meme = document.createElement('img');
+    meme.className = 'floating-meme';
+    meme.src = preloadedMemes[i % preloadedMemes.length].media_formats.gif.url;
+    meme.style.width = `${Math.random() * 50 + 50}px`;
+    meme.style.left = `${Math.random() * 100}vw`;
+    meme.style.top = `${Math.random() * 100}vh`;
+    meme.style.animationDelay = `${Math.random() * 10}s`;
+    app.appendChild(meme);
+  }
+}
+
+function updateProgressBars() {
+  const memeContainers = document.querySelectorAll('.meme-container');
+  const windowHeight = window.innerHeight;
+
+  memeContainers.forEach(container => {
+    const rect = container.getBoundingClientRect();
+    const visibleHeight = Math.min(rect.bottom, windowHeight) - Math.max(rect.top, 0);
+    const percentVisible = (visibleHeight / windowHeight) * 100;
+
+    const progressBar = container.querySelector('.progress-bar');
+    progressBar.style.width = `${percentVisible}%`;
+  });
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  let timeLeft = memePerSecond;
+  updateTimerDisplay(timeLeft);
+
+  const progressBar = document.querySelector('.progress-bar');
+  progressBar.style.width = '0%';
+
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay(timeLeft);
+    progressBar.style.width = `${((memePerSecond - timeLeft) / memePerSecond) * 100}%`;
+
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      smoothScroll();
+      if (autoLiker) {
+        const currentMeme = document.querySelectorAll('.meme-container')[currentMemeIndex];
+        const likeBtn = currentMeme.querySelector('.action-btn');
+        if (!likeBtn.classList.contains('liked')) {
+          likeBtn.click();
+        }
+      }
+    }
+  }, 1000);
+}
+
+function smoothScroll() {
+  const app = document.getElementById('app');
+  const memeContainers = app.querySelectorAll('.meme-container');
+  
+  if (currentMemeIndex < memeContainers.length - 1) {
+    currentMemeIndex++;
+    memeContainers[currentMemeIndex].scrollIntoView({ behavior: 'smooth' });
+  } else {
+    loadMemes().then(() => {
+      currentMemeIndex++;
+      const newMemeContainers = app.querySelectorAll('.meme-container');
+      newMemeContainers[currentMemeIndex].scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+  resetTimer();
+}
+
+let lastScrollTime = 0;
+const scrollInterval = 5000;
+let isManualScrolling = false;
+let manualScrollTimeout;
+
+document.getElementById('app').addEventListener('scroll', () => {
+  clearTimeout(manualScrollTimeout);
+  isManualScrolling = true;
+  lastScrollTime = Date.now();
+  updateProgressBars();
+  
+  manualScrollTimeout = setTimeout(() => {
+    isManualScrolling = false;
+  }, 2000);
+});
+
+function autoScroll() {
+  const now = Date.now();
+  if (!isManualScrolling && now - lastScrollTime > scrollInterval) {
+    smoothScroll();
+    lastScrollTime = now;
+  }
+  requestAnimationFrame(autoScroll);
+}
+
+function updateTimerDisplay(timeLeft) {
+  document.getElementById('timer').textContent = `Next meme in: ${timeLeft}s`;
+}
+
+function showTutorial() {
+  document.getElementById('tutorialModal').style.display = 'block';
+}
+
+function closeTutorial() {
+  document.getElementById('tutorialModal').style.display = 'none';
+}
+
+function showSettings() {
+  document.getElementById('settingsModal').style.display = 'block';
+}
+
+function closeSettings() {
+  document.getElementById('settingsModal').style.display = 'none';
+}
+
+function updateSearchTerms() {
+  customSearchTerms = [
+    document.getElementById('keyword1').value,
+    document.getElementById('keyword2').value,
+    document.getElementById('keyword3').value
+  ].filter(term => term.trim() !== '');
+  
+  // Reset and reload with new terms
+  preloadedMemes = [];
+  document.getElementById('app').innerHTML = '<div class="loading">Loading memes...</div>';
+  currentMemeIndex = 0;
+  loadMemes();
+}
+
+document.getElementById('autoLiker').addEventListener('change', function() {
+  autoLiker = this.checked;
+});
+
+document.getElementById('nsfwToggle').addEventListener('change', function() {
+  nsfwEnabled = this.checked;
+  // Implement NSFW content filtering logic here
+});
+
+document.getElementById('memePerSecond').addEventListener('input', function() {
+  memePerSecond = parseInt(this.value);
+  document.getElementById('memePerSecondValue').textContent = memePerSecond;
+  resetTimer();
+});
+
+window.addEventListener('load', () => {
+  loadMemes().then(() => {
+    loadMemes().then(() => {
+      loadMemes().then(() => {
+        addFloatingMemes();
+        autoScroll();
+        resetTimer();
+      });
+    });
+  });
+});
+
+let touchStartY = 0;
+document.getElementById('app').addEventListener('touchstart', (e) => {
+  touchStartY = e.touches[0].clientY;
+});
+
+document.getElementById('app').addEventListener('touchend', (e) => {
+  const touchEndY = e.changedTouches[0].clientY;
+  const touchDiff = touchStartY - touchEndY;
+  
+  if (Math.abs(touchDiff) > 50) {
+    if (touchDiff > 0) {
+      smoothScroll();
+    } else {
+      currentMemeIndex = Math.max(0, currentMemeIndex - 1);
+      document.querySelectorAll('.meme-container')[currentMemeIndex].scrollIntoView({ behavior: 'smooth' });
+    }
+    resetTimer();
+  }
+});
+
+// Custom cursor
+const cursor = document.querySelector('.cursor');
+
+document.addEventListener('mousemove', (e) => {
+  cursor.style.left = e.clientX + 'px';
+  cursor.style.top = e.clientY + 'px';
+});
+
+document.addEventListener('click', () => {
+  cursor.style.transform = 'translate(-50%, -50%) scale(0.8)';
+  setTimeout(() => {
+    cursor.style.transform = 'translate(-50%, -50%) scale(1)';
+  }, 100);
+});
+
+// Hover effect for buttons
+document.addEventListener('mouseover', (e) => {
+  if (e.target.closest('.action-btn') || e.target.closest('.tutorial-btn') || e.target.closest('.settings-btn')) {
+    cursor.style.transform = 'translate(-50%, -50%) scale(1.5)';
+    cursor.style.border = '2px solid var(--secondary-color)';
+  }
+});
+
+document.addEventListener('mouseout', (e) => {
+  if (e.target.closest('.action-btn') || e.target.closest('.tutorial-btn') || e.target.closest('.settings-btn')) {
+    cursor.style.transform = 'translate(-50%, -50%) scale(1)';
+    cursor.style.border = '2px solid var(--primary-color)';
+  }
+});
+
+</script>
+</body></html>
